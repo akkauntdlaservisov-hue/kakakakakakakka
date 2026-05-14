@@ -61,7 +61,7 @@ def show_examples(message):
 # 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
 def about_logicware(message):
-    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands.")
+    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands. We and have a second bot, @MostoProject_robot. This is a bot for arduino.")
 
 # 8. Основной обработчик текста и математики
 @bot.message_handler(func=lambda message: True)
