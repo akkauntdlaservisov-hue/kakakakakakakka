@@ -9,8 +9,8 @@ from telebot import types
 logging.basicConfig(level=logging.INFO)
 
 # 2. Инициализация ключей
-TOKEN = os.environ.get("TG_TOKEN")
-GROQ_KEY = os.environ.get("GROQ_API_KEY")
+TOKEN = os.environ.get("TG_TOKEN1")
+GROQ_KEY = os.environ.get("GROQ_API_KEY1")
 
 bot = telebot.TeleBot(TOKEN)
 client = Groq(api_key=GROQ_KEY)
@@ -51,17 +51,18 @@ def send_welcome(message):
 @bot.message_handler(func=lambda message: message.text == "🚀 Примеры запросов")
 def show_examples(message):
     examples = (
-        "Попробуй отправить мне что-то такое:\n\n"
-        "1. `Реши уравнение x^2 - 5x + 6 = 0`\n"
-        "2. `Сколько будет 15% от 4500?`\n"
-        "3. `Найди производную функции y = x^3`"
+        "Попробуй отправить мне что-то из мира электроники и кода:\n\n"
+        "1. Как подключить кнопку к Arduino Uno через пин D2?\n"
+        "2. Напиши код для мигания светодиодом на Python через Serial (для связи с Arduino).\n"
+        "3. Реши уравнение x^2 - 5x + 6 = 0\n"
+        "4. Как найти пины RX, TX и GND на плате, если они не подписаны?"
     )
     bot.send_message(message.chat.id, examples, parse_mode='Markdown')
 
 # 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
 def about_logicware(message):
-    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands.")
+    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands. We have a second bot @PostoProject_robot. This bot for math.")
 
 # 8. Основной обработчик текста и математики
 @bot.message_handler(func=lambda message: True)
