@@ -131,7 +131,19 @@ def handle_arduino_logic(message):
         bot.send_message(message.chat.id, "🤖 <b>Произошла ошибка в логических цепях!</b> Попробуй переформулировать вопрос.", parse_mode='HTML')
 
 # 9. Запуск бота
+# 9. Запуск бота и сервера
 if __name__ == "__main__":
-    logging.info("Arduino бот LogicWare запущен и готов к работе...")
-    # skip_pending=True игнорирует сообщения, присланные пока бот был оффлайн
-    bot.infinity_polling(skip_pending=True)
+    logging.info("Arduino бот LogicWare запускается...")
+
+    # 1. Запускаем логгер "не спи" в фоне
+    threading.Thread(target=keep_alive_ping, daemon=True).start()
+    
+    # 2. Запускаем бота в отдельном потоке
+    # Это позволит коду идти дальше и запустить веб-сервер
+    threading.Thread(target=lambda: bot.infinity_polling(skip_pending=True), daemon=True).start()
+    
+    # 3. Запускаем веб-сервер (ОСНОВНОЙ ПРОЦЕСС)
+    # Render будет считать сервис активным, пока работает этот сервер
+    port = int(os.environ.get("PORT", 5000))
+    logging.info(f"Веб-сервер запущен на порту {port}")
+    app.run(host='0.0.0.0', port=port)
