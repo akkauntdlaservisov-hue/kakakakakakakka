@@ -115,7 +115,13 @@ def handle_math(message):
         logging.error(f"Error API: {e}")
 
 # 9. Безопасный запуск бота
+# ОШИБКА ЗДЕСЬ:
 if __name__ == "__main__":
-    logging.info("Бот запущен и готов к работе...")
-    # skip_pending=True решает проблему ошибки 409 Conflict при перезапуске
-    bot.infinity_polling(skip_pending=True)
+    logging.info("Бот запущен...")
+    # Эта функция бесконечная. Код "застревает" тут и не идет дальше.
+    bot.infinity_polling(skip_pending=True) 
+    
+    # ВСЁ ЧТО НИЖЕ — НИКОГДА НЕ ЗАПУСТИТСЯ:
+    threading.Thread(target=keep_alive_ping, daemon=True).start()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
