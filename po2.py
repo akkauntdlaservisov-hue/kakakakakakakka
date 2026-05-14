@@ -1,12 +1,17 @@
 import os
 import telebot
 import logging
+import threading
+import time
 import re
 from groq import Groq
 from telebot import types
+from flask import Flask
 
 # 1. Настройка логирования (чтобы видеть всё в консоли Render)
 logging.basicConfig(level=logging.INFO)
+
+app = Flask(__name__)
 
 # 2. Инициализация ключей
 # Убедись, что в Render созданы переменные TG_TOKEN1 и GROQ_API_KEY1
@@ -50,6 +55,10 @@ def send_welcome(message):
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode='HTML', reply_markup=main_keyboard())
 
+@app.route('/')
+def home():
+    return "I'm alive", 200
+
 # 6. Обработчик кнопки "Примеры запросов"
 @bot.message_handler(func=lambda message: message.text == "🚀 Примеры запросов")
 def show_examples(message):
@@ -61,6 +70,11 @@ def show_examples(message):
         "4. Как управлять сервоприводом?"
     )
     bot.send_message(message.chat.id, examples, parse_mode='HTML')
+
+def keep_alive_ping():
+    while True:
+        logging.info("RENDER PING: ya tut ne spi")
+        time.sleep(5) # Твой запрос: писать каждые 5 сек
 
 # 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
