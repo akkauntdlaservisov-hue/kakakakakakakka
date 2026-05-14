@@ -2,11 +2,16 @@ import os
 import telebot
 import logging
 import re
+import threading
+import time
+from flask import Flask
 from groq import Groq
 from telebot import types
 
 # 1. Настройка логирования
 logging.basicConfig(level=logging.INFO)
+
+app = Flask(__name__)
 
 # 2. Инициализация ключей
 TOKEN = os.environ.get("TG_TOKEN")
@@ -30,6 +35,14 @@ def main_keyboard():
     btn2 = types.KeyboardButton("🛠 О LogicWare")
     markup.add(btn1, btn2)
     return markup
+@app.route('/')
+def home():
+    return "I'm alive", 200
+
+def keep_alive_ping():
+    while True:
+        logging.info("RENDER PING: ya tut ne spi")
+        time.sleep(5) # Твой запрос: писать каждые 5 сек
 
 # 5. Обработчик команды /start
 @bot.message_handler(commands=['start', 'help'])
