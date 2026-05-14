@@ -1,29 +1,29 @@
 import os
 import telebot
 import logging
+import re
 from groq import Groq
 from telebot import types
 
-# 1. Настройка логирования (чтобы видеть ошибки в консоли Render)
+# 1. Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
 # 2. Инициализация ключей
-# ВАЖНО: На Render в разделе Environment Variables создай переменные с этими именами
 TOKEN = os.environ.get("TG_TOKEN")
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 client = Groq(api_key=GROQ_KEY)
 
-# 3. Системный промпт (личность твоего бота)
+# 3. Системный промпт
 SYSTEM_PROMPT = (
-    "Ты — лучший в мире математический помощник от LogicWare. "
-    "Ты очень милый, добрый и используешь эмодзи. "
-    "Твоя задача: решать задачи пошагово. Никогда не давай только ответ. "
-    "Объясняй так, чтобы понял даже ребенок. Используй Markdown для оформления формул."
+    "Ты — милый и хороший помощник. Твоя задача решать математические задачи. "
+    "Не давай сразу ответ, объясняй шаги решения и будь вежливым. "
+    "Если задача очень простая, отвечай быстро. Если сложная — расписывай подробно. "
+    "Используй Markdown для оформления."
 )
 
-# Функция для создания кнопок
+# 4. Клавиатура с кнопками
 def main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     btn1 = types.KeyboardButton("🚀 Примеры запросов")
@@ -31,25 +31,23 @@ def main_keyboard():
     markup.add(btn1, btn2)
     return markup
 
+# 5. Обработчик команды /start
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     welcome_text = (
-        f"🌟 **Привет, {message.from_user.first_name}!**\n\n"
-        "Я — твой интеллектуальный наставник по математике. "
-        "Моя цель не просто решить пример, а научить тебя понимать его!\n\n"
-        "✨ **Что я могу:**\n"
-        "• Разложить сложное уравнение по полочкам.\n"
-        "• Объяснить теоремы и правила.\n"
-        "• Помочь с кодом на Python или C.\n\n"
-        "Просто напиши свой вопрос ниже! 👇"
+        f"👋 Привет, {message.from_user.first_name}!\n\n"
+        "Я твой персональный **Математический Решатель**, созданный на базе технологий **LogicWare**. 🧠✨\n\n"
+        "**Что я умею:**\n"
+        "1. Решать арифметические примеры (от простых до самых сложных).\n"
+        "2. Объяснять логику решения шаг за шагом (я не просто кидаю ответ!).\n"
+        "3. Помогать с алгеброй, геометрией и даже программированием.\n\n"
+        "**Как со мной работать:**\n"
+        "Просто напиши мне любой пример, например: `(15 * 4) / 2 + 7` или `реши уравнение x^2 = 16`.\n\n"
+        "Я постараюсь быть максимально полезным, добрым и понятным! Жду твой первый запрос. 👇"
     )
-    bot.send_message(
-        message.chat.id, 
-        welcome_text, 
-        parse_mode='Markdown', 
-        reply_markup=main_keyboard()
-    )
+    bot.send_message(message.chat.id, welcome_text, parse_mode='Markdown', reply_markup=main_keyboard())
 
+# 6. Обработчик кнопки "Примеры запросов"
 @bot.message_handler(func=lambda message: message.text == "🚀 Примеры запросов")
 def show_examples(message):
     examples = (
@@ -60,42 +58,51 @@ def show_examples(message):
     )
     bot.send_message(message.chat.id, examples, parse_mode='Markdown')
 
+# 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
 def about_logicware(message):
-    bot.send_message(message.chat.id, "Core Model: Gemini 3 Flash. Developed under TRIO & LogicWare brands.")
+    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands.")
 
-# 4. Основной обработчик запросов
+# 8. Основной обработчик текста и математики
 @bot.message_handler(func=lambda message: True)
-def handle_ai_request(message):
-    # Эффект "печать..." в Telegram, чтобы юзер не скучал
+def handle_math(message):
+    user_query = message.text
     bot.send_chat_action(message.chat.id, 'typing')
     
     try:
-        # Запрос к Groq с использованием модели Llama 3
+        # Запрос к нейросети (используем рабочую модель)
         completion = client.chat.completions.create(
-            model="qwen/qwen3-32b",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": message.text}
+                {"role": "user", "content": user_query}
             ],
-            temperature=0.6, # Чуть меньше креативности для точности в математике
+            temperature=0.6,
             max_tokens=2048
         )
         
-        response_text = completion.choices[0].message.content
+        raw_response = completion.choices[0].message.content
         
-        # Разбиваем длинные сообщения (лимит TG - 4096 символов)
-        if len(response_text) > 4000:
-            for x in range(0, len(response_text), 4000):
-                bot.send_message(message.chat.id, response_text[x:x+4000], parse_mode='Markdown')
+        # УДАЛЕНИЕ ТЕГОВ <think> И ВСЕГО ИХ СОДЕРЖИМОГО
+        clean_response = re.sub(r'<think>.*?</think>', '', raw_response, flags=re.DOTALL).strip()
+        
+        # Если ответ оказался пустым после очистки
+        if not clean_response:
+            clean_response = "Извини, я задумался и не смог сформулировать ответ. Попробуй еще раз!"
+            
+        # Отправка ответа пользователю с учетом лимита символов в Telegram
+        if len(clean_response) > 4000:
+            for x in range(0, len(clean_response), 4000):
+                bot.send_message(message.chat.id, clean_response[x:x+4000], parse_mode='Markdown')
         else:
-            bot.send_message(message.chat.id, response_text, parse_mode='Markdown')
-
+            bot.send_message(message.chat.id, clean_response, parse_mode='Markdown')
+            
     except Exception as e:
-        logging.error(f"Ошибка API: {e}")
-        bot.send_message(message.chat.id, "🤖 Мои нейронные цепи перегрелись! Попробуй переформулировать запрос.")
+        bot.send_message(message.chat.id, "Ой, что-то пошло не так при решении... попробуй еще раз!")
+        logging.error(f"Error API: {e}")
 
-# 5. Запуск
+# 9. Безопасный запуск бота
 if __name__ == "__main__":
-    print("Бот запущен...")
-    bot.infinity_polling()
+    logging.info("Бот запущен и готов к работе...")
+    # skip_pending=True решает проблему ошибки 409 Conflict при перезапуске
+    bot.infinity_polling(skip_pending=True)
