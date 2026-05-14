@@ -45,7 +45,7 @@ def send_welcome(message):
         "Просто напиши мне любой пример, например: `(15 * 4) / 2 + 7` или `реши уравнение x^2 = 16`.\n\n"
         "Я постараюсь быть максимально полезным, добрым и понятным! Жду твой первый запрос. 👇"
     )
-    bot.send_message(message.chat.id, welcome_text, parse_mode='Markdown', reply_markup=main_keyboard())
+    bot.send_message(message.chat.id, welcome_text, parse_mode='HTML', reply_markup=main_keyboard())
 
 # 6. Обработчик кнопки "Примеры запросов"
 @bot.message_handler(func=lambda message: message.text == "🚀 Примеры запросов")
@@ -56,7 +56,7 @@ def show_examples(message):
         "2. `Сколько будет 15% от 4500?`\n"
         "3. `Найди производную функции y = x^3`"
     )
-    bot.send_message(message.chat.id, examples, parse_mode='Markdown')
+    bot.send_message(message.chat.id, examples, parse_mode='HTML')
 
 # 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
@@ -93,9 +93,9 @@ def handle_math(message):
         # Отправка ответа пользователю с учетом лимита символов в Telegram
         if len(clean_response) > 4000:
             for x in range(0, len(clean_response), 4000):
-                bot.send_message(message.chat.id, clean_response[x:x+4000], parse_mode='Markdown')
+                bot.send_message(message.chat.id, clean_response[x:x+4000], parse_mode='HTML')
         else:
-            bot.send_message(message.chat.id, clean_response, parse_mode='Markdown')
+            bot.send_message(message.chat.id, clean_response, parse_mode='HTML')
             
     except Exception as e:
         bot.send_message(message.chat.id, "Ой, что-то пошло не так при решении... попробуй еще раз!")
