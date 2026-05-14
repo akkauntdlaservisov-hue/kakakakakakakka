@@ -5,10 +5,11 @@ import re
 from groq import Groq
 from telebot import types
 
-# 1. Настройка логирования
+# 1. Настройка логирования (чтобы видеть всё в консоли Render)
 logging.basicConfig(level=logging.INFO)
 
 # 2. Инициализация ключей
+# Убедись, что в Render созданы переменные TG_TOKEN1 и GROQ_API_KEY1
 TOKEN = os.environ.get("TG_TOKEN1")
 GROQ_KEY = os.environ.get("GROQ_API_KEY1")
 
@@ -16,11 +17,13 @@ bot = telebot.TeleBot(TOKEN)
 client = Groq(api_key=GROQ_KEY)
 
 # 3. Системный промпт
+# Учим модель не использовать Markdown и оборачивать код в наши теги
 SYSTEM_PROMPT = (
-    "Ты — милый и хороший помощник. Твоя задача pomogat arduino, i pomoch podkluchat moduli. Nikogda ne perxodi na drugie temy, tolko arduino i moduli. "
-    "Не давай сразу ответ, объясняй шаги решения и будь вежливым. inogda dobavlyay emoji "
-    "Если задача очень простая, отвечай быстро. Если сложная — расписывай подробно. "
-    "Do not use any Markdown formatting in your responses. Output only plain text. Ty mojesh tolko ispolzovat parse html"
+    "Ты — милый и хороший помощник LogicWare. Твоя задача помогать с Arduino и модулями. "
+    "Никогда не переходи на другие темы, только Arduino и электроника. "
+    "Не давай сразу ответ, объясняй шаги решения и будь вежливым. Иногда добавляй emoji. "
+    "Если пользователь попросил код, ОБЯЗАТЕЛЬНО выделяй его так: [CODE] тут код [/CODE]. "
+    "Do not use any Markdown formatting. Output only plain text. Используй теги [CODE] для программного кода."
 )
 
 # 4. Клавиатура с кнопками
@@ -36,47 +39,49 @@ def main_keyboard():
 def send_welcome(message):
     welcome_text = (
         f"👋 Привет, {message.from_user.first_name}!\n\n"
-        "Я твой персональный **Математический Решатель**, созданный на базе технологий **LogicWare**. 🧠✨\n\n"
-        "**Что я умею:**\n"
-        "1. Решать арифметические примеры (от простых до самых сложных).\n"
-        "2. Объяснять логику решения шаг за шагом (я не просто кидаю ответ!).\n"
-        "3. Помогать с программированием Arduino, и подключать модули.\n\n"
-        "**Как со мной работать:**\n"
-        "Просто напиши мне любой пример, например: `какие пины PWM?` или `что будет если подключить 5в и землю?`.\n\n"
-        "Я постараюсь быть максимально полезным, добрым и понятным! Жду твой первый запрос. 👇"
+        "Я твой наставник по <b>Arduino</b> от <b>LogicWare</b>. 🧠✨\n\n"
+        "<b>Что я умею:</b>\n"
+        "1. Помогать с программированием Arduino и подключением модулей.\n"
+        "2. Объяснять схемы и искать нужные пины.\n\n"
+        "Просто напиши мне свой вопрос ниже! 👇"
     )
-    bot.send_message(message.chat.id, welcome_text, parse_mode='Markdown', reply_markup=main_keyboard())
+    bot.send_message(message.chat.id, welcome_text, parse_mode='HTML', reply_markup=main_keyboard())
 
 # 6. Обработчик кнопки "Примеры запросов"
 @bot.message_handler(func=lambda message: message.text == "🚀 Примеры запросов")
 def show_examples(message):
     examples = (
-        "Попробуй отправить мне что-то из мира электроники и кода:\n\n"
-        "1. Как подключить кнопку к Arduino Uno через пин D2?\n"
-        "2. Напиши код для мигания светодиодом на Python через Serial (для связи с Arduino).\n"
-        "3. Реши уравнение x^2 - 5x + 6 = 0\n"
-        "4. Как найти пины RX, TX и GND на плате, если они не подписаны?"
+        "<b>Попробуй спросить меня об этом:</b>\n\n"
+        "1. Как подключить кнопку к Arduino Uno?\n"
+        "2. Напиши код для мигания светодиодом.\n"
+        "3. Помоги найти пины RX, TX и GND на плате.\n"
+        "4. Как управлять сервоприводом?"
     )
-    bot.send_message(message.chat.id, examples, parse_mode='Markdown')
+    bot.send_message(message.chat.id, examples, parse_mode='HTML')
 
 # 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
 def about_logicware(message):
-    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands. We have a second bot @PostoProject_robot. This bot for math.")
+    about_text = (
+        "<b>LogicWare & TRIO Brands</b>\n\n"
+        "Core Model: Groq Llama 3.3.\n"
+        "Мы создаем инструменты для учебы и DIY проектов.\n"
+        "Наш математический бот: @PostoProject_robot"
+    )
+    bot.send_message(message.chat.id, about_text, parse_mode='HTML')
 
-# 8. Основной обработчик текста и математики
+# 8. Основной обработчик логики
 @bot.message_handler(func=lambda message: True)
-def handle_math(message):
-    user_query = message.text
+def handle_arduino_logic(message):
     bot.send_chat_action(message.chat.id, 'typing')
     
     try:
-        # Запрос к нейросети (используем рабочую модель)
+        # Запрос к Groq
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": user_query}
+                {"role": "user", "content": message.text}
             ],
             temperature=0.6,
             max_tokens=2048
@@ -84,26 +89,32 @@ def handle_math(message):
         
         raw_response = completion.choices[0].message.content
         
-        # УДАЛЕНИЕ ТЕГОВ <think> И ВСЕГО ИХ СОДЕРЖИМОГО
+        # Очистка от мыслей модели <think>
         clean_response = re.sub(r'<think>.*?</think>', '', raw_response, flags=re.DOTALL).strip()
         
-        # Если ответ оказался пустым после очистки
-        if not clean_response:
-            clean_response = "Извини, я задумался и не смог сформулировать ответ. Попробуй еще раз!"
+        # Экранируем спецсимволы HTML, чтобы текст не ломал парсинг
+        # Но оставляем наши будущие теги [CODE]
+        formatted_response = clean_response.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+        
+        # Превращаем [CODE] в реальный HTML блок кода
+        formatted_response = formatted_response.replace("[CODE]", "<pre><code>").replace("[/CODE]", "</code></pre>")
+        
+        if not formatted_response:
+            formatted_response = "Извини, я задумался и потерял мысль. Спроси еще раз! 🤔"
             
-        # Отправка ответа пользователю с учетом лимита символов в Telegram
-        if len(clean_response) > 4000:
-            for x in range(0, len(clean_response), 4000):
-                bot.send_message(message.chat.id, clean_response[x:x+4000], parse_mode='Markdown')
+        # Отправка (с разбиением на части, если текст очень длинный)
+        if len(formatted_response) > 4000:
+            for x in range(0, len(formatted_response), 4000):
+                bot.send_message(message.chat.id, formatted_response[x:x+4000], parse_mode='HTML')
         else:
-            bot.send_message(message.chat.id, clean_response, parse_mode='Markdown')
+            bot.send_message(message.chat.id, formatted_response, parse_mode='HTML')
             
     except Exception as e:
-        bot.send_message(message.chat.id, "Ой, что-то пошло не так при решении... попробуй еще раз!")
-        logging.error(f"Error API: {e}")
+        logging.error(f"Error in handle_arduino_logic: {e}")
+        bot.send_message(message.chat.id, "🤖 <b>Произошла ошибка в логических цепях!</b> Попробуй переформулировать вопрос.", parse_mode='HTML')
 
-# 9. Безопасный запуск бота
+# 9. Запуск бота
 if __name__ == "__main__":
-    logging.info("Бот запущен и готов к работе...")
-    # skip_pending=True решает проблему ошибки 409 Conflict при перезапуске
+    logging.info("Arduino бот LogicWare запущен и готов к работе...")
+    # skip_pending=True игнорирует сообщения, присланные пока бот был оффлайн
     bot.infinity_polling(skip_pending=True)
