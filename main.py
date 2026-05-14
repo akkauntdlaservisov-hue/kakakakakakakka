@@ -73,7 +73,7 @@ def handle_ai_request(message):
     try:
         # Запрос к Groq с использованием модели Llama 3
         completion = client.chat.completions.create(
-            model="llama3-8b-8192",
+            model="qwen/qwen3-32b",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": message.text}
