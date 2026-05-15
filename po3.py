@@ -12,8 +12,6 @@ from telebot import types
 # 1. Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-app = Flask(__name__)
-
 # 2. Инициализация ключей
 TOKEN = os.environ.get("TG_TOKEN2")
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
@@ -37,15 +35,6 @@ def main_keyboard():
     btn2 = types.KeyboardButton("🛠 О LogicWare")
     markup.add(btn1, btn2)
     return markup
-
-@app.route('/')
-def home():
-    return "I'm alive", 200
-
-def keep_alive_ping():
-    while True:
-        logging.info("RENDER PING: ya tut ne spi")
-        time.sleep(5) 
 
 # 5. Обработчик команды /start (ОБНОВЛЕН)
 @bot.message_handler(commands=['start', 'help'])
@@ -122,15 +111,3 @@ def handle_math(message):
     except Exception as e:
         bot.send_message(message.chat.id, "Ой, что-то пошло не так при решении... попробуй еще раз!")
         logging.error(f"Error API: {e}")
-
-# 9. Безопасный запуск бота (ИСПРАВЛЕНО)
-if __name__ == "__main__":
-    logging.info("Бот запущен...")
-    
-    # Теперь и пинг, и бот работают в фоновых потоках
-    threading.Thread(target=keep_alive_ping, daemon=True).start()
-    threading.Thread(target=lambda: bot.infinity_polling(skip_pending=True), daemon=True).start()
-    
-    # Flask запускается в основном потоке и не дает программе закрыться
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
