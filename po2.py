@@ -12,8 +12,6 @@ from flask import Flask
 # 1. Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-app = Flask(__name__)
-
 # 2. Инициализация ключей
 # Убедись, что переменные TG_TOKEN1 и GROQ_API_KEY созданы в Render
 TOKEN = os.environ.get("TG_TOKEN1")
@@ -60,10 +58,6 @@ def send_welcome(message):
         "Я помогу тебе собрать твое устройство шаг за шагом! Жду твой первый запрос. 👇"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode='HTML', reply_markup=main_keyboard())
-
-@app.route('/')
-def home():
-    return "I'm alive", 200
 
 # 7. Обработчик кнопки "Примеры запросов"
 @bot.message_handler(func=lambda message: message.text == "🚀 Примеры запросов")
@@ -127,20 +121,3 @@ def handle_arduino_logic(message):
     except Exception as e:
         logging.error(f"Error in handle_arduino_logic: {e}")
         bot.send_message(message.chat.id, "🤖 <b>Произошла ошибка в логических цепях!</b> Попробуй еще раз.", parse_mode='HTML')
-
-# 10. Запуск бота и сервера
-if __name__ == "__main__":
-    logging.info("Arduino бот LogicWare запускается...")
-
-    # Запускаем пинг и поллинг в отдельных потоках
-    threading.Thread(target=keep_alive_ping, daemon=True).start()
-    threading.Thread(target=lambda: bot.infinity_polling(skip_pending=True), daemon=True).start()
-    
-    # Попытка запуска Flask. Если порт занят другим ботом — этот просто работает в фоне
-    port = int(os.environ.get("PORT", 5000))
-    try:
-        app.run(host='0.0.0.0', port=port)
-    except Exception as e:
-        logging.warning(f"Порт {port} занят, Flask не запущен. Бот продолжает работу.")
-        while True:
-            time.sleep(100)
