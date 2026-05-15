@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 # 2. Инициализация ключей
+# Убедись, что в Render переменная называется TG_TOKEN
 TOKEN = os.environ.get("TG_TOKEN")
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
 
@@ -39,13 +40,13 @@ def main_keyboard():
 def send_welcome(message):
     welcome_text = (
         f"👋 Привет, {message.from_user.first_name}!\n\n"
-        "Я твой персональный **Python создатель**, созданный на базе технологий **LogicWare**. 🧠✨\n\n"
-        "**Что я умею:**\n"
+        "Я твой персональный <b>Python создатель</b>, созданный на базе технологий <b>LogicWare</b>. 🧠✨\n\n"
+        "<b>Что я умею:</b>\n"
         "1. Решать арифметические примеры (от простых до самых сложных).\n"
         "2. Объяснять логику решения шаг за шагом (я не просто кидаю ответ!).\n"
         "3. Помогать с algebra, geometriey и даже математикой.\n\n"
-        "**Как со мной работать:**\n"
-        "Просто напиши мне любой пример, например: `Что тут неправильно?` или `5 + 2`.\n\n"
+        "<b>Как со мной работать:</b>\n"
+        "Просто напиши мне любой пример, например: <code>Что тут неправильно?</code> или <code>5 + 2</code>.\n\n"
         "Я постараюсь быть максимально полезным, добрым и понятным! Жду твой первый запрос. 👇"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode='HTML', reply_markup=main_keyboard())
@@ -73,7 +74,7 @@ def handle_math(message):
     bot.send_chat_action(message.chat.id, 'typing')
     
     try:
-        # Запрос к нейросети (используем рабочую модель)
+        # Запрос к нейросети
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[
@@ -103,3 +104,9 @@ def handle_math(message):
     except Exception as e:
         bot.send_message(message.chat.id, "Ой, что-то пошло не так при решении... попробуй еще раз!")
         logging.error(f"Error API: {e}")
+
+# 9. Финальный запуск бота
+if __name__ == "__main__":
+    logging.info("Математический бот LogicWare запущен...")
+    # Команда, которая заставляет бота слушать сообщения бесконечно
+    bot.infinity_polling(skip_pending=True)
