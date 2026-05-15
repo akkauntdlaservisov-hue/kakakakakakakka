@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 
 # 2. Инициализация ключей
-TOKEN = os.environ.get("TG_TOKEN2")
+TOKEN = os.environ.get("TG_TOKEN")
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
@@ -22,8 +22,8 @@ client = Groq(api_key=GROQ_KEY)
 
 # 3. Системный промпт
 SYSTEM_PROMPT = (
-    "Ты — милый и хороший помощник. Твоя задача решать i sozdavat python programmy kak skajet polzovatel. "
-    "Не давай сразу ответ, объясняй шаги решения и будь вежливым. I eshe ne perexodi na drugie yazyki html, nasm nelzya!!! tolko python, ne otvechay na voprsosy ne svyazzanye s pythonom. "
+    "Ты — милый и хороший помощник. Твоя задача решать matematicheskie veshi. "
+    "Не давай сразу ответ, объясняй шаги решения и будь вежливым. I eshe ne perexodi na drugie temy. "
     "Если задача очень простая, отвечай быстро. Если сложная — расписывай подробно. I ispolzuy pochashe emoji "
     "Do not use any Markdown formatting in your responses. Output only plain text, esli vse taki budesh, to tvoy parse mode eto html."
 )
@@ -53,9 +53,9 @@ def send_welcome(message):
         "**Что я умею:**\n"
         "1. Решать арифметические примеры (от простых до самых сложных).\n"
         "2. Объяснять логику решения шаг за шагом (я не просто кидаю ответ!).\n"
-        "3. Помогать с pythonom, game и даже математикой в коде.\n\n"
+        "3. Помогать с algebra, geometriey и даже математикой.\n\n"
         "**Как со мной работать:**\n"
-        "Просто напиши мне любой пример, например: `Что тут неправильно?` или `Co3дай мне калькулятор`.\n\n"
+        "Просто напиши мне любой пример, например: `Что тут неправильно?` или `5 + 2`.\n\n"
         "Я постараюсь быть максимально полезным, добрым и понятным! Жду твой первый запрос. 👇"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode='HTML', reply_markup=main_keyboard())
@@ -65,16 +65,16 @@ def send_welcome(message):
 def show_examples(message):
     examples = (
         "<b>Попробуй отправить мне что-то из этого:</b>\n\n"
-        "1. <code>Напиши скрипт для парсинга заголовков новостей с сайта</code> 📰\n"
-        "2. <code>Как сделать автокликер на Python для нажатия кнопки каждые 2 секунды?</code> 🖱\n"
-        "3. <code>Сделай Telegram-бота, который пересылает сообщения из одного канала в другой</code> 📤\n"
+        "1. <code>2+2</code> 📰\n"
+        "2. <code>17438-7000?</code> 🖱\n"
+        "3. <code>900074-90074</code> 📤\n"
     )
     bot.send_message(message.chat.id, examples, parse_mode='HTML')
 
 # 7. Обработчик кнопки "О LogicWare"
 @bot.message_handler(func=lambda message: message.text == "🛠 О LogicWare")
 def about_logicware(message):
-    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands. We and have a second bot, @PostoProject_robot. This is a bot for arduino. And @MostoProject_robot")
+    bot.send_message(message.chat.id, "Core Model: Groq AI. Developed under TRIO & LogicWare brands. We and have a second bot, @MostoProject_robot. This is a bot for arduino. And @KostoProject_robot")
 
 # 8. Основной обработчик текста и математики
 @bot.message_handler(func=lambda message: True)
