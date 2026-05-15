@@ -83,7 +83,7 @@ def about_logicware(message):
         "<b>LogicWare & TRIO Brands</b>\n\n"
         "Core Model: Groq Llama 3.3.\n"
         "Мы создаем инструменты для учебы и DIY проектов.\n"
-        "Наш математический бот: @PostoProject_robot"
+        "Наши боты; @PostoProject_robot, @KostoProject_robot"
     )
     bot.send_message(message.chat.id, about_text, parse_mode='HTML')
 
