@@ -2,34 +2,56 @@ import subprocess
 import sys
 import os
 import time
+import threading
+import logging
 from flask import Flask
+
+# 1. Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
 
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "LogicWare Multi-Bot System is Live", 200
+    return "LogicWare Multi-Bot System is Live and Monitoring", 200
 
-def start_bots():
-    # Запускаем процессы без блокировки через .wait() сразу
-    # Каждый файл занимается только своим ботом
-    processes = []
-    scripts = ["po1.py", "po2.py", "po3.py"]
-    
-    for script in scripts:
-        logging.info(f"Запуск {script}...")
-        p = subprocess.Popen([sys.executable, script])
-        processes.append(p)
-    return processes
+def monitor_bot(script_name):
+    """Функция следит за ботом и перезапускает его при вылете"""
+    while True:
+        logging.info(f"--- Запуск процесса: {script_name} ---")
+        try:
+            # Запускаем скрипт
+            process = subprocess.Popen([sys.executable, script_name])
+            
+            # Ждем завершения процесса (если он упадет)
+            exit_code = process.wait()
+            
+            logging.error(f"!!! Файл {script_name} завершился с кодом {exit_code}. Перезапуск через 5 секунд...")
+        except Exception as e:
+            logging.error(f"!!! Ошибка при запуске {script_name}: {e}")
+        
+        time.sleep(5)
 
 if __name__ == "__main__":
-    import logging
-    logging.basicConfig(level=logging.INFO)
+    # Список твоих файлов
+    scripts = ["po1.py", "po2.py", "po3.py"]
 
-    # 1. Запускаем всех ботов
-    bot_processes = start_bots()
+    # 2. Запускаем мониторинг каждого бота в отдельном потоке
+    for script in scripts:
+        if os.path.exists(script):
+            t = threading.Thread(target=monitor_bot, args=(script,), daemon=True)
+            t.start()
+        else:
+            logging.warning(f"Файл {script} не найден в директории!")
 
-    # 2. Запускаем Flask на порту Render
-    # Это единственный процесс, который занимает порт!
+    # 3. Запускаем Flask на порту Render
+    # Это основной поток, который не дает сервису закрыться
     port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
+    logging.info(f"Старт веб-интерфейса на порту {port}")
+    
+    # Режим debug=False обязателен для работы в потоках на Render
+    app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
