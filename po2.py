@@ -16,7 +16,7 @@ app = Flask(__name__)
 # 2. Инициализация ключей
 # Убедись, что в Render созданы переменные TG_TOKEN1 и GROQ_API_KEY1
 TOKEN = os.environ.get("TG_TOKEN1")
-GROQ_KEY = os.environ.get("GROQ_API_KEY1")
+GROQ_KEY = os.environ.get("GROQ_API_KEY")
 
 bot = telebot.TeleBot(TOKEN)
 client = Groq(api_key=GROQ_KEY)
