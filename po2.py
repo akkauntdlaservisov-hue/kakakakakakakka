@@ -120,3 +120,13 @@ def handle_arduino_logic(message):
     except Exception as e:
         logging.error(f"Error in handle_arduino_logic: {e}")
         bot.send_message(message.chat.id, "🤖 <b>Произошла ошибка в логических цепях!</b> Попробуй еще раз.", parse_mode='HTML')
+
+# 10. Запуск
+if __name__ == "__main__":
+    logging.info("Arduino бот LogicWare запускается...")
+    
+    # Запускаем пинг в отдельном потоке
+    threading.Thread(target=keep_alive_ping, daemon=True).start()
+    
+    # ЗАПУСК БОТА (Infinity polling)
+    bot.infinity_polling(skip_pending=True)
