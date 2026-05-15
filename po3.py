@@ -12,6 +12,7 @@ from telebot import types
 logging.basicConfig(level=logging.INFO)
 
 # 2. Инициализация ключей
+# Убедись, что переменные TG_TOKEN2 и GROQ_API_KEY созданы в Render
 TOKEN = os.environ.get("TG_TOKEN2")
 GROQ_KEY = os.environ.get("GROQ_API_KEY")
 
@@ -90,9 +91,7 @@ def handle_math(message):
         clean_response = re.sub(r'<think>.*?</think>', '', raw_response, flags=re.DOTALL).strip()
         
         # ФУНКЦИЯ ДЛЯ КРАСИВОГО КОДА
-        # Она ищет всё внутри [CODE]...[/CODE], экранирует символы (<, >) и превращает в HTML теги Telegram
         def replace_code(match):
-            # html.escape заменяет < на &lt;, чтобы Telegram не подумал, что это HTML-тег
             code = html.escape(match.group(1).strip())
             return f"<pre><code class='language-python'>{code}</code></pre>"
             
@@ -110,3 +109,9 @@ def handle_math(message):
     except Exception as e:
         bot.send_message(message.chat.id, "Ой, что-то пошло не так при решении... попробуй еще раз!")
         logging.error(f"Error API: {e}")
+
+# --- ФИНАЛЬНЫЙ ЗАПУСК ---
+if __name__ == "__main__":
+    logging.info("Python бот LogicWare запущен...")
+    # Эта команда заставляет бота работать бесконечно и слушать сообщения
+    bot.infinity_polling(skip_pending=True)
