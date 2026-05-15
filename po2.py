@@ -7,7 +7,6 @@ import re
 import html
 from groq import Groq
 from telebot import types
-from flask import Flask
 
 # 1. Настройка логирования
 logging.basicConfig(level=logging.INFO)
